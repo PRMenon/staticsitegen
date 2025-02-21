@@ -39,3 +39,28 @@ def text_node_to_html_node(text_node: TextNode) -> LeafNode:
             return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
         case _:
             raise ValueError("Invalid text node type")
+
+def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: TextType) -> list:
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT or delimiter not in node.text:
+            new_nodes.append(node)
+        else:
+            if node.text.count(delimiter) % 2:
+                raise ValueError("unmatched delimiters")
+            
+            match delimiter:
+                case "*" :
+                    new_text_type = TextType.BOLD
+                case "**":
+                    new_text_type = TextType.ITALIC
+                case "`":
+                    new_text_type = TextType.CODE
+                case _:
+                    raise ValueError("Unsupported delimiter")
+
+            parts = node.text.split(delimiter)
+            nodes = [TextNode(text, new_text_type if i % 2 else TextType.TEXT) for i, text in enumerate(parts)]
+            new_nodes.extend(nodes)
+    
+    return new_nodes
